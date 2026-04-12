@@ -1,47 +1,85 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import {
-  BellRing,
   LayoutDashboard,
   PawPrint,
   Sparkles,
   TrendingUp,
 } from "lucide-react";
 import { HRDashboard } from "./components/Dashboard/HRDashboard";
-import { TaskPanelShell } from "./components/Panel/TaskPanelShell";
+import { EmployeeWorkspace } from "./components/Employee/EmployeeWorkspace";
 import { Pet } from "./components/Pet/Pet";
+import { PetChatPopover } from "./components/Pet/PetChatPopover";
 import { PrivacySettings } from "./components/Settings/PrivacySettings";
 import { Button } from "./components/shared/Button";
 import { Card } from "./components/shared/Card";
 import { useReminder } from "./hooks/useReminder";
-import { petGreetings, taskItems, type PetMood } from "./data/mockData";
+import { taskItems, type PetMood } from "./data/mockData";
 
-type ViewMode = "employee" | "hr";
+type ViewMode = "employee" | "management";
+type AssistantState = {
+  reply: string;
+  subtasks: string[];
+  knowledgeDocs: Array<{ title: string; reason: string }>;
+  collaborators: Array<{ name: string; focus: string; reason: string }>;
+};
 
-export default function App() {
+export default function App({
+  shellMode = "dashboard",
+}: {
+  shellMode?: "pet" | "dashboard";
+}) {
   const [viewMode, setViewMode] = useState<ViewMode>("employee");
-  const [panelOpen, setPanelOpen] = useState(true);
-  const [bubbleMessage, setBubbleMessage] = useState<string | null>(petGreetings[0]);
+  const [chatOpen, setChatOpen] = useState(false);
   const [tasks, setTasks] = useState(taskItems);
-  const [expandedTaskId, setExpandedTaskId] = useState<number | null>(taskItems[0].id);
   const [sharingEnabled, setSharingEnabled] = useState(true);
+  const [assistantState, setAssistantState] = useState<AssistantState>({
+    reply: "我已经准备好帮你拆任务、推知识库和找协作者了。",
+    subtasks: [],
+    knowledgeDocs: [],
+    collaborators: [],
+  });
+  const [workMinutes, setWorkMinutes] = useState(83);
   const { reminder, dismiss } = useReminder();
 
-  const completedCount = tasks.filter((task) => task.completed).length;
   const totalPoints = tasks
     .filter((task) => task.completed)
     .reduce((sum, task) => sum + task.points, 0);
+  const completedCount = tasks.filter((task) => task.completed).length;
 
   const mood = useMemo<PetMood>(() => {
     if (reminder) return "greeting";
-    if (panelOpen) return "thinking";
-    return completedCount >= 2 ? "happy" : "greeting";
-  }, [completedCount, panelOpen, reminder]);
+    if (chatOpen) return "thinking";
+    return tasks.filter((task) => task.completed).length >= 2 ? "happy" : "greeting";
+  }, [chatOpen, reminder, tasks]);
+
+  useEffect(() => {
+    document.body.classList.toggle("desktop-pet-body", shellMode === "pet");
+    return () => document.body.classList.remove("desktop-pet-body");
+  }, [shellMode]);
+
+  useEffect(() => {
+    if (shellMode !== "pet") return;
+    void window.desktopBridge?.resizePetWindow(chatOpen);
+  }, [chatOpen, shellMode]);
+
+  useEffect(() => {
+    void window.desktopBridge?.getAssistantState().then((state) => {
+      if (state) setAssistantState(state);
+    });
+
+    const interval = window.setInterval(() => {
+      setWorkMinutes((value) => value + 1);
+      void window.desktopBridge?.getAssistantState().then((state) => {
+        if (state) setAssistantState(state);
+      });
+    }, 60000);
+
+    return () => window.clearInterval(interval);
+  }, []);
 
   const handlePetClick = () => {
-    const message =
-      petGreetings[Math.floor(Math.random() * petGreetings.length)];
-    setBubbleMessage(message);
+    setChatOpen(true);
   };
 
   const handleToggleTask = (id: number) => {
@@ -51,6 +89,43 @@ export default function App() {
       ),
     );
   };
+
+  const handleAssistantSubmit = async (input: string) => {
+    try {
+      const response = await window.desktopBridge?.chatWithAssistant(input);
+      if (!response) return;
+
+      setAssistantState(response);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  if (shellMode === "pet") {
+    return (
+      <main className="pet-window-shell">
+        {chatOpen ? (
+          <PetChatPopover
+            open={chatOpen}
+            onSubmit={handleAssistantSubmit}
+            onClose={() => setChatOpen(false)}
+          />
+        ) : (
+          <Pet
+            mood={mood}
+            message={null}
+            onSingleClick={handlePetClick}
+            onDoubleClick={() => {
+              dismiss();
+              setChatOpen(false);
+              void window.desktopBridge?.openDashboard();
+            }}
+            onDismissBubble={() => {}}
+          />
+        )}
+      </main>
+    );
+  }
 
   return (
     <main className="app-shell">
@@ -66,17 +141,17 @@ export default function App() {
             真正被感知。
           </h1>
           <p>
-            员工看到的是一个会提醒、会拆解任务、会推荐协作资源的桌面伙伴；
-            管理者看到的是带有人文温度的洞察看板。
+            单击桌面悬浮宠物进入轻对话，双击进入员工大面板；在 APP
+            内还可以切到管理端，看团队状态与员工画像。
           </p>
           <div className="hero-actions">
             <Button onClick={() => setViewMode("employee")}>
               <PawPrint size={16} />
-              员工端
+              员工看板
             </Button>
-            <Button variant="secondary" onClick={() => setViewMode("hr")}>
+            <Button variant="secondary" onClick={() => setViewMode("management")}>
               <LayoutDashboard size={16} />
-              HR 看板
+              管理端
             </Button>
           </div>
         </div>
@@ -137,12 +212,12 @@ export default function App() {
               <span>数据共享状态</span>
             </div>
             <div>
-              <strong>Low-friction</strong>
-              <span>默认轻量感知</span>
+              <strong>{assistantState.knowledgeDocs.length || 2}</strong>
+              <span>已推送建议资源</span>
             </div>
           </div>
           <p>
-            双击右下角宠物可展开员工面板，顶部 Tab 可切换到管理视图。
+            员工看板聚焦执行与状态，管理端聚焦团队洞察，但底部任务区保持一致。
           </p>
         </Card>
       </section>
@@ -157,10 +232,10 @@ export default function App() {
         </button>
         <button
           type="button"
-          className={viewMode === "hr" ? "top-tab active" : "top-tab"}
-          onClick={() => setViewMode("hr")}
+          className={viewMode === "management" ? "top-tab active" : "top-tab"}
+          onClick={() => setViewMode("management")}
         >
-          HR / 管理看板
+          管理端
         </button>
       </div>
 
@@ -175,57 +250,45 @@ export default function App() {
           >
             <div className="employee-grid">
               <Card className="employee-overview">
-                <span className="eyebrow">今天的节奏</span>
-                <h2>优先收口 Demo 演示链路</h2>
-                <p>
-                  宠物会在不打断工作的前提下提醒喝水、整理任务优先级，并给出文档和协作者建议。
-                </p>
-                <div className="overview-row">
-                  <div>
-                    <BellRing size={16} />
-                    <span>{reminder ?? "提醒已关闭，点击宠物可再次唤起。"}</span>
-                  </div>
-                </div>
+                <span className="eyebrow">员工入口</span>
+                <h2>你的悬浮宠物已经连上 AI 助手</h2>
+                <p>{assistantState.reply || "现在可以从悬浮球发起任务拆解与建议请求。"}</p>
+                <div className="overview-row"><div><span>{reminder ?? "双击悬浮宠物可进入大面板。"}</span></div></div>
               </Card>
               <PrivacySettings
                 sharingEnabled={sharingEnabled}
                 onToggle={() => setSharingEnabled((value) => !value)}
               />
             </div>
-
-            <TaskPanelShell
-              open={panelOpen}
+            <EmployeeWorkspace
               tasks={tasks}
-              expandedTaskId={expandedTaskId}
-              onToggleTask={handleToggleTask}
-              onToggleExpanded={(id) =>
-                setExpandedTaskId((current) => (current === id ? null : id))
-              }
               totalPoints={totalPoints}
+              workMinutes={workMinutes}
+              assistantState={assistantState}
+              onToggleTask={handleToggleTask}
             />
           </motion.section>
         ) : (
           <motion.div
-            key="hr"
+            key="management"
             initial={{ opacity: 0, y: 18 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -12 }}
           >
             <HRDashboard />
+            <div className="management-task-section">
+              <EmployeeWorkspace
+                tasks={tasks}
+                totalPoints={totalPoints}
+                workMinutes={workMinutes}
+                assistantState={assistantState}
+                onToggleTask={handleToggleTask}
+              />
+            </div>
           </motion.div>
         )}
       </AnimatePresence>
 
-      <Pet
-        mood={mood}
-        message={bubbleMessage ?? reminder}
-        onSingleClick={handlePetClick}
-        onDoubleClick={() => {
-          setPanelOpen((value) => !value);
-          dismiss();
-        }}
-        onDismissBubble={() => setBubbleMessage(null)}
-      />
     </main>
   );
 }

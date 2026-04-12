@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useRef } from "react";
 import { motion } from "framer-motion";
 import { Heart, MessageCircleMore } from "lucide-react";
 import { PetAvatar } from "./PetAvatar";
@@ -20,6 +20,7 @@ export function Pet({
   onDoubleClick,
   onDismissBubble,
 }: PetProps) {
+  const clickTimerRef = useRef<number | null>(null);
   const label = useMemo(() => {
     if (mood === "thinking") return "思考中";
     if (mood === "greeting") return "陪伴中";
@@ -31,8 +32,23 @@ export function Pet({
       <PetBubble message={message} onClose={onDismissBubble} />
       <motion.button
         className="pet-launcher"
-        onClick={onSingleClick}
-        onDoubleClick={onDoubleClick}
+        onClick={() => {
+          if (clickTimerRef.current) {
+            window.clearTimeout(clickTimerRef.current);
+          }
+
+          clickTimerRef.current = window.setTimeout(() => {
+            onSingleClick();
+            clickTimerRef.current = null;
+          }, 180);
+        }}
+        onDoubleClick={() => {
+          if (clickTimerRef.current) {
+            window.clearTimeout(clickTimerRef.current);
+            clickTimerRef.current = null;
+          }
+          onDoubleClick();
+        }}
         whileHover={{ scale: 1.03 }}
         whileTap={{ scale: 0.98 }}
       >
