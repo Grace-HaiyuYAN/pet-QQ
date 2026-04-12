@@ -1,30 +1,20 @@
 import { useMemo, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import {
-  BellRing,
-  LayoutDashboard,
-  PawPrint,
-  Sparkles,
-  TrendingUp,
-} from "lucide-react";
+import { X, User, LayoutDashboard } from "lucide-react";
 import { HRDashboard } from "./components/Dashboard/HRDashboard";
 import { TaskPanelShell } from "./components/Panel/TaskPanelShell";
 import { Pet } from "./components/Pet/Pet";
-import { PrivacySettings } from "./components/Settings/PrivacySettings";
-import { Button } from "./components/shared/Button";
-import { Card } from "./components/shared/Card";
 import { useReminder } from "./hooks/useReminder";
 import { petGreetings, taskItems, type PetMood } from "./data/mockData";
 
 type ViewMode = "employee" | "hr";
 
 export default function App() {
+  const [panelOpen, setPanelOpen] = useState(false);
   const [viewMode, setViewMode] = useState<ViewMode>("employee");
-  const [panelOpen, setPanelOpen] = useState(true);
-  const [bubbleMessage, setBubbleMessage] = useState<string | null>(petGreetings[0]);
+  const [bubbleMessage, setBubbleMessage] = useState<string | null>(null);
   const [tasks, setTasks] = useState(taskItems);
-  const [expandedTaskId, setExpandedTaskId] = useState<number | null>(taskItems[0].id);
-  const [sharingEnabled, setSharingEnabled] = useState(true);
+  const [expandedTaskId, setExpandedTaskId] = useState<number | null>(null);
   const { reminder, dismiss } = useReminder();
 
   const completedCount = tasks.filter((task) => task.completed).length;
@@ -44,6 +34,12 @@ export default function App() {
     setBubbleMessage(message);
   };
 
+  const handlePetDoubleClick = () => {
+    setPanelOpen(true);
+    setBubbleMessage(null);
+    dismiss();
+  };
+
   const handleToggleTask = (id: number) => {
     setTasks((current) =>
       current.map((task) =>
@@ -52,178 +48,136 @@ export default function App() {
     );
   };
 
+  const handleClosePanel = () => {
+    setPanelOpen(false);
+  };
+
   return (
     <main className="app-shell">
+      {/* 简洁背景 */}
       <div className="ambient ambient-left" />
       <div className="ambient ambient-right" />
 
-      <section className="hero-panel">
-        <div className="hero-copy">
-          <span className="eyebrow">AI 办公宠物助手 Demo</span>
-          <h1>
-            让管理藏在宠物陪伴里，让
-            <span className="gradient-text headline-accent">关怀</span>
-            真正被感知。
-          </h1>
-          <p>
-            员工看到的是一个会提醒、会拆解任务、会推荐协作资源的桌面伙伴；
-            管理者看到的是带有人文温度的洞察看板。
-          </p>
-          <div className="hero-actions">
-            <Button onClick={() => setViewMode("employee")}>
-              <PawPrint size={16} />
-              员工端
-            </Button>
-            <Button variant="secondary" onClick={() => setViewMode("hr")}>
-              <LayoutDashboard size={16} />
-              HR 看板
-            </Button>
-          </div>
-        </div>
-
-        <Card className="hero-summary" tone="highlight">
-          <div className="summary-top">
-            <span className="eyebrow">MVP 体验</span>
-            <Sparkles size={16} />
-          </div>
-          <div className="hero-visual" aria-hidden="true">
-            <motion.div
-              className="hero-ring"
-              animate={{ rotate: 360 }}
-              transition={{
-                duration: 60,
-                ease: "linear",
-                repeat: Number.POSITIVE_INFINITY,
-              }}
-            />
-            <div className="hero-orbit-dot hero-orbit-dot-a" />
-            <div className="hero-orbit-dot hero-orbit-dot-b" />
-            <motion.div
-              className="hero-float-card hero-float-primary"
-              animate={{ y: [0, -10, 0] }}
-              transition={{
-                duration: 5,
-                repeat: Number.POSITIVE_INFINITY,
-                ease: "easeInOut",
-              }}
-            >
-              <span className="eyebrow">Effort</span>
-              <strong>{completedCount}/4</strong>
-              <p>今日任务已推进</p>
-            </motion.div>
-            <motion.div
-              className="hero-float-card hero-float-secondary"
-              animate={{ y: [0, 10, 0] }}
-              transition={{
-                duration: 4.4,
-                repeat: Number.POSITIVE_INFINITY,
-                ease: "easeInOut",
-              }}
-            >
-              <TrendingUp size={16} />
-              <strong>82%</strong>
-              <p>团队完成率</p>
-            </motion.div>
-            <div className="hero-dot-grid">
-              {Array.from({ length: 9 }).map((_, index) => (
-                <span key={index} />
-              ))}
-            </div>
-            <div className="hero-accent-block" />
-          </div>
-          <div className="summary-metrics">
-            <div>
-              <strong>{sharingEnabled ? "已授权" : "未授权"}</strong>
-              <span>数据共享状态</span>
-            </div>
-            <div>
-              <strong>Low-friction</strong>
-              <span>默认轻量感知</span>
-            </div>
-          </div>
-          <p>
-            双击右下角宠物可展开员工面板，顶部 Tab 可切换到管理视图。
-          </p>
-        </Card>
-      </section>
-
-      <div className="top-tab-row">
-        <button
-          type="button"
-          className={viewMode === "employee" ? "top-tab active" : "top-tab"}
-          onClick={() => setViewMode("employee")}
-        >
-          员工工作台
-        </button>
-        <button
-          type="button"
-          className={viewMode === "hr" ? "top-tab active" : "top-tab"}
-          onClick={() => setViewMode("hr")}
-        >
-          HR / 管理看板
-        </button>
-      </div>
-
-      <AnimatePresence mode="wait">
-        {viewMode === "employee" ? (
+      {/* 主页面：简洁引导 */}
+      <AnimatePresence>
+        {!panelOpen && (
           <motion.section
-            key="employee"
-            initial={{ opacity: 0, y: 18 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -12 }}
-            className="employee-view"
+            className="landing-hero"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0, scale: 0.98 }}
           >
-            <div className="employee-grid">
-              <Card className="employee-overview">
-                <span className="eyebrow">今天的节奏</span>
-                <h2>优先收口 Demo 演示链路</h2>
-                <p>
-                  宠物会在不打断工作的前提下提醒喝水、整理任务优先级，并给出文档和协作者建议。
-                </p>
-                <div className="overview-row">
-                  <div>
-                    <BellRing size={16} />
-                    <span>{reminder ?? "提醒已关闭，点击宠物可再次唤起。"}</span>
-                  </div>
-                </div>
-              </Card>
-              <PrivacySettings
-                sharingEnabled={sharingEnabled}
-                onToggle={() => setSharingEnabled((value) => !value)}
-              />
+            <div className="landing-content">
+              <span className="eyebrow">AI 办公宠物助手</span>
+              <h1>
+                双击右下角的<span className="gradient-text">小宠物</span>
+                <br />
+                开始体验
+              </h1>
+              <p className="landing-hint">
+                单击打招呼 · 双击展开面板
+              </p>
             </div>
-
-            <TaskPanelShell
-              open={panelOpen}
-              tasks={tasks}
-              expandedTaskId={expandedTaskId}
-              onToggleTask={handleToggleTask}
-              onToggleExpanded={(id) =>
-                setExpandedTaskId((current) => (current === id ? null : id))
-              }
-              totalPoints={totalPoints}
-            />
           </motion.section>
-        ) : (
+        )}
+      </AnimatePresence>
+
+      {/* 主面板：双击宠物后展开 */}
+      <AnimatePresence>
+        {panelOpen && (
           <motion.div
-            key="hr"
-            initial={{ opacity: 0, y: 18 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -12 }}
+            className="main-panel-overlay"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={handleClosePanel}
           >
-            <HRDashboard />
+            <motion.section
+              className="main-panel"
+              initial={{ opacity: 0, y: 40, scale: 0.95 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 20, scale: 0.98 }}
+              transition={{ type: "spring", damping: 25, stiffness: 300 }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* 面板头部：Tab 切换 */}
+              <header className="panel-header">
+                <nav className="panel-tabs">
+                  <button
+                    type="button"
+                    className={`panel-tab ${viewMode === "employee" ? "active" : ""}`}
+                    onClick={() => setViewMode("employee")}
+                  >
+                    <User size={16} />
+                    我的工作台
+                  </button>
+                  <button
+                    type="button"
+                    className={`panel-tab ${viewMode === "hr" ? "active" : ""}`}
+                    onClick={() => setViewMode("hr")}
+                  >
+                    <LayoutDashboard size={16} />
+                    HR 看板
+                  </button>
+                </nav>
+                <button
+                  type="button"
+                  className="panel-close"
+                  onClick={handleClosePanel}
+                  aria-label="关闭面板"
+                >
+                  <X size={20} />
+                </button>
+              </header>
+
+              {/* 面板内容 */}
+              <div className="panel-body">
+                <AnimatePresence mode="wait">
+                  {viewMode === "employee" ? (
+                    <motion.div
+                      key="employee"
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, x: 20 }}
+                      className="panel-view"
+                    >
+                      <TaskPanelShell
+                        open={true}
+                        tasks={tasks}
+                        expandedTaskId={expandedTaskId}
+                        onToggleTask={handleToggleTask}
+                        onToggleExpanded={(id) =>
+                          setExpandedTaskId((current) =>
+                            current === id ? null : id,
+                          )
+                        }
+                        totalPoints={totalPoints}
+                      />
+                    </motion.div>
+                  ) : (
+                    <motion.div
+                      key="hr"
+                      initial={{ opacity: 0, x: 20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, x: -20 }}
+                      className="panel-view"
+                    >
+                      <HRDashboard />
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+            </motion.section>
           </motion.div>
         )}
       </AnimatePresence>
 
+      {/* 桌面宠物：始终显示 */}
       <Pet
         mood={mood}
         message={bubbleMessage ?? reminder}
         onSingleClick={handlePetClick}
-        onDoubleClick={() => {
-          setPanelOpen((value) => !value);
-          dismiss();
-        }}
+        onDoubleClick={handlePetDoubleClick}
         onDismissBubble={() => setBubbleMessage(null)}
       />
     </main>
