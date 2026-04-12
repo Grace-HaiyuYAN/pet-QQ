@@ -36,16 +36,16 @@ export function PetChatPopover({
           animate={{ opacity: 1, x: 0, scale: 1 }}
           exit={{ opacity: 0, x: 16, scale: 0.98 }}
         >
-          <div className="pet-chat-header">
-            <div />
-            <button type="button" className="pet-chat-close" onClick={onClose}>
-              <X size={16} />
-            </button>
-          </div>
-
+          <button
+            type="button"
+            className="pet-chat-close"
+            onClick={onClose}
+            aria-label="关闭聊天框"
+          >
+            <X size={14} />
+          </button>
           <div className="pet-chat-input-row">
             <div className="pet-chat-composer">
-              <p className="pet-chat-inline-title">先聊一下，我来帮你拆任务</p>
               <textarea
                 className="pet-chat-input"
                 value={input}
@@ -59,21 +59,19 @@ export function PetChatPopover({
                 }}
                 placeholder="例如：帮我拆解今天 Demo"
               />
-              <div className="pet-chat-composer-footer">
-                <button
-                  type="button"
-                  className="pet-chat-send-icon"
-                  onClick={() => void handleSubmit()}
-                  disabled={loading}
-                  aria-label="发送消息"
-                >
-                  {loading ? (
-                    <LoaderCircle size={18} className="spin" />
-                  ) : (
-                    <Send size={18} />
-                  )}
-                </button>
-              </div>
+              <button
+                type="button"
+                className="pet-chat-send-icon"
+                onClick={() => void handleSubmit()}
+                disabled={loading}
+                aria-label="发送消息"
+              >
+                {loading ? (
+                  <LoaderCircle size={18} className="spin" />
+                ) : (
+                  <Send size={18} />
+                )}
+              </button>
             </div>
           </div>
         </motion.section>
