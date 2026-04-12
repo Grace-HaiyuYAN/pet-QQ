@@ -1,6 +1,12 @@
 import { useMemo, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { BellRing, LayoutDashboard, PawPrint, Sparkles } from "lucide-react";
+import {
+  BellRing,
+  LayoutDashboard,
+  PawPrint,
+  Sparkles,
+  TrendingUp,
+} from "lucide-react";
 import { HRDashboard } from "./components/Dashboard/HRDashboard";
 import { TaskPanelShell } from "./components/Panel/TaskPanelShell";
 import { Pet } from "./components/Pet/Pet";
@@ -54,7 +60,11 @@ export default function App() {
       <section className="hero-panel">
         <div className="hero-copy">
           <span className="eyebrow">AI 办公宠物助手 Demo</span>
-          <h1>让管理藏在宠物陪伴里，让关怀真正被感知。</h1>
+          <h1>
+            让管理藏在宠物陪伴里，让
+            <span className="gradient-text headline-accent">关怀</span>
+            真正被感知。
+          </h1>
           <p>
             员工看到的是一个会提醒、会拆解任务、会推荐协作资源的桌面伙伴；
             管理者看到的是带有人文温度的洞察看板。
@@ -76,18 +86,59 @@ export default function App() {
             <span className="eyebrow">MVP 体验</span>
             <Sparkles size={16} />
           </div>
-          <div className="summary-metrics">
-            <div>
+          <div className="hero-visual" aria-hidden="true">
+            <motion.div
+              className="hero-ring"
+              animate={{ rotate: 360 }}
+              transition={{
+                duration: 60,
+                ease: "linear",
+                repeat: Number.POSITIVE_INFINITY,
+              }}
+            />
+            <div className="hero-orbit-dot hero-orbit-dot-a" />
+            <div className="hero-orbit-dot hero-orbit-dot-b" />
+            <motion.div
+              className="hero-float-card hero-float-primary"
+              animate={{ y: [0, -10, 0] }}
+              transition={{
+                duration: 5,
+                repeat: Number.POSITIVE_INFINITY,
+                ease: "easeInOut",
+              }}
+            >
+              <span className="eyebrow">Effort</span>
               <strong>{completedCount}/4</strong>
-              <span>今日任务进度</span>
+              <p>今日任务已推进</p>
+            </motion.div>
+            <motion.div
+              className="hero-float-card hero-float-secondary"
+              animate={{ y: [0, 10, 0] }}
+              transition={{
+                duration: 4.4,
+                repeat: Number.POSITIVE_INFINITY,
+                ease: "easeInOut",
+              }}
+            >
+              <TrendingUp size={16} />
+              <strong>82%</strong>
+              <p>团队完成率</p>
+            </motion.div>
+            <div className="hero-dot-grid">
+              {Array.from({ length: 9 }).map((_, index) => (
+                <span key={index} />
+              ))}
             </div>
+            <div className="hero-accent-block" />
+          </div>
+          <div className="summary-metrics">
             <div>
               <strong>{sharingEnabled ? "已授权" : "未授权"}</strong>
               <span>数据共享状态</span>
             </div>
             <div>
-              <strong>82%</strong>
-              <span>团队任务完成率</span>
+              <strong>Low-friction</strong>
+              <span>默认轻量感知</span>
             </div>
           </div>
           <p>
