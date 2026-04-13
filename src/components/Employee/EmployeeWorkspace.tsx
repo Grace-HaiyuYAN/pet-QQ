@@ -30,14 +30,72 @@ export function EmployeeWorkspace({
     workMinutes >= 120
       ? "已经持续专注较久，建议站起来走一走并喝点水。"
       : "状态稳定，建议 25 分钟后做一次短休息。";
+  const knowledgeSamples = [
+    {
+      title: "《办公宠物 Demo 演示脚本》",
+      link: "kb://demo/pet-script",
+      push: "资料推送：3 分钟速读版 + 讲解提纲",
+    },
+    {
+      title: "《AI 任务拆解模板库》",
+      link: "kb://templates/task-breakdown",
+      push: "资料推送：今日拆解参考 + 常用话术",
+    },
+    {
+      title: "《员工关怀节奏建议》",
+      link: "kb://hr/care-playbook",
+      push: "资料推送：节奏清单 + 提醒卡片",
+    },
+  ];
+
+  const knowledgeList = assistantState.knowledgeDocs.length
+    ? assistantState.knowledgeDocs.map((doc, index) => ({
+        title: doc.title,
+        reason: doc.reason,
+        link: knowledgeSamples[index % knowledgeSamples.length].link,
+        push: knowledgeSamples[index % knowledgeSamples.length].push,
+      }))
+    : knowledgeSamples;
+
+  const colleagueSuggestions = assistantState.collaborators.length
+    ? assistantState.collaborators.map((person) => ({
+        kind: "同事推荐",
+        name: person.name,
+        meta: person.focus,
+        reason: person.reason,
+      }))
+    : [
+        {
+          kind: "同事推荐",
+          name: "Mia",
+          meta: "员工画像 · 数据分析",
+          reason: "可以补全管理端的数据解读与叙事。",
+        },
+      ];
+
+  const socialList = [
+    colleagueSuggestions[0],
+    {
+      kind: "活动推荐",
+      name: "AI 任务拆解分享会",
+      meta: "周三 16:00 · 会议室 2",
+      reason: "适合快速验证 Demo 的任务拆解玩法。",
+    },
+    {
+      kind: "社团推荐",
+      name: "效率工具社",
+      meta: "每周 Demo day · 周五",
+      reason: "可收集更多桌面助理同类案例。",
+    },
+  ];
 
   return (
     <section className="employee-workspace">
       <div className="employee-workspace-header">
         <div>
           <span className="eyebrow">员工看板</span>
-          <h2>今天先把最值得展示的结果做出来</h2>
-          <p>{assistantState.reply}</p>
+          <h2>最近任务完成的不错！继续努力噢～</h2>
+          <p>你的节奏正在慢慢变稳，今天也继续把关键事项往前推一点点。</p>
         </div>
       </div>
 
@@ -98,10 +156,14 @@ export function EmployeeWorkspace({
               </div>
             </div>
             <div className="workspace-doc-list">
-              {assistantState.knowledgeDocs.map((doc) => (
+              {knowledgeList.map((doc) => (
                 <div key={doc.title} className="workspace-doc-card">
                   <strong>{doc.title}</strong>
-                  <span>{doc.reason}</span>
+                  {"reason" in doc && doc.reason ? <span>{doc.reason}</span> : null}
+                  <a className="workspace-doc-link" href={doc.link}>
+                    {doc.link}
+                  </a>
+                  <span className="workspace-doc-push">{doc.push}</span>
                 </div>
               ))}
             </div>
@@ -116,13 +178,16 @@ export function EmployeeWorkspace({
               </div>
             </div>
             <div className="workspace-social-list">
-              {assistantState.collaborators.map((person) => (
-                <div key={person.name} className="workspace-social-card">
-                  <div>
-                    <strong>{person.name}</strong>
-                    <span>{person.focus}</span>
+              {socialList.map((item) => (
+                <div key={`${item.kind}-${item.name}`} className="workspace-social-card">
+                  <div className="workspace-social-header">
+                    <span className="workspace-social-tag">{item.kind}</span>
+                    <div>
+                      <strong>{item.name}</strong>
+                      <span>{item.meta}</span>
+                    </div>
                   </div>
-                  <p>{person.reason}</p>
+                  <p>{item.reason}</p>
                 </div>
               ))}
             </div>

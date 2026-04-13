@@ -51,7 +51,8 @@ textarea {
 }
 
 button:focus-visible,
-.top-tab:focus-visible,
+.strip-tab:focus-visible,
+.strip-sharing:focus-visible,
 .privacy-toggle:focus-visible,
 .team-pet-card:focus-visible,
 .pet-launcher:focus-visible,
@@ -65,7 +66,7 @@ button:focus-visible,
   min-height: 100vh;
   max-width: 1440px;
   margin: 0 auto;
-  padding: 48px 32px 140px;
+  padding: 28px 32px 96px;
   overflow: hidden;
 }
 
@@ -349,31 +350,79 @@ button:focus-visible,
   background: var(--muted);
 }
 
-.top-tab-row {
-  gap: 12px;
-  margin: 24px 0 20px;
-}
-
-.top-tab {
-  min-height: 44px;
+.dashboard-strip {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 18px;
+  padding: 8px 12px;
+  border-radius: 999px;
   border: 1px solid var(--border);
   background: rgba(255, 255, 255, 0.86);
-  color: var(--muted-foreground);
+  box-shadow: var(--shadow-sm);
+}
+
+.strip-tabs {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.strip-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
   border-radius: 999px;
-  padding: 10px 16px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--muted-foreground);
   cursor: pointer;
   transition: all 0.2s ease;
 }
 
-.top-tab:hover {
-  border-color: rgba(0, 82, 255, 0.24);
-  transform: translateY(-1px);
+.strip-tab:hover {
+  border-color: rgba(0, 82, 255, 0.16);
+  color: var(--foreground);
 }
 
-.top-tab.active {
+.strip-tab.active {
+  border-color: rgba(0, 82, 255, 0.2);
   color: var(--accent-foreground);
   background: linear-gradient(135deg, var(--accent), var(--accent-secondary));
   box-shadow: var(--shadow-accent);
+}
+
+.strip-sharing {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  border: none;
+  background: transparent;
+  color: var(--muted-foreground);
+  cursor: pointer;
+}
+
+.strip-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(0, 82, 255, 0.16);
+  font-size: 0.78rem;
+}
+
+.strip-badge.on {
+  color: var(--accent);
+  background: rgba(0, 82, 255, 0.08);
+}
+
+.strip-badge.off {
+  color: var(--muted-foreground);
+  background: rgba(148, 163, 184, 0.16);
+  border-color: rgba(148, 163, 184, 0.3);
 }
 
 .employee-grid {
@@ -506,11 +555,31 @@ button:focus-visible,
 
 .workspace-check-item span,
 .workspace-doc-card span,
-.workspace-social-card span {
+.workspace-social-card span:not(.workspace-social-tag) {
   display: block;
   margin-top: 4px;
   color: var(--muted-foreground);
   line-height: 1.55;
+}
+
+.workspace-doc-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 10px;
+  color: var(--accent);
+  font-size: 0.86rem;
+  text-decoration: none;
+}
+
+.workspace-doc-link:hover {
+  text-decoration: underline;
+}
+
+.workspace-doc-push {
+  margin-top: 6px;
+  font-size: 0.86rem;
+  color: var(--muted-foreground);
 }
 
 .workspace-generated-item {
@@ -521,6 +590,26 @@ button:focus-visible,
 .workspace-social-card p {
   margin: 8px 0 0;
   color: var(--muted-foreground);
+}
+
+.workspace-social-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.workspace-social-tag {
+  display: inline-flex;
+  align-items: center;
+  height: 26px;
+  padding: 0 10px;
+  border-radius: 999px;
+  background: rgba(0, 82, 255, 0.1);
+  color: var(--accent);
+  font-size: 0.7rem;
+  letter-spacing: 0.1em;
+  font-family: "JetBrains Mono", monospace;
+  text-transform: uppercase;
 }
 
 .status-board-card {
@@ -870,11 +959,10 @@ button:focus-visible,
   background:
     radial-gradient(circle at top right, rgba(77, 124, 255, 0.16), transparent 28%),
     radial-gradient(circle at bottom left, rgba(77, 124, 255, 0.08), transparent 24%),
-    radial-gradient(circle, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
-    var(--foreground);
-  background-size: auto, auto, 24px 24px, auto;
-  color: var(--background);
+    linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(248, 251, 255, 0.96));
+  color: var(--foreground);
   box-shadow: var(--shadow-xl);
+  border: 1px solid rgba(226, 232, 240, 0.92);
 }
 
 .dashboard-header {
@@ -883,7 +971,7 @@ button:focus-visible,
 
 .dashboard-header p {
   max-width: 540px;
-  color: rgba(255, 255, 255, 0.72);
+  color: var(--muted-foreground);
 }
 
 .stats-grid {
