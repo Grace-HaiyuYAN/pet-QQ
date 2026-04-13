@@ -1,6 +1,7 @@
 import { BookOpenText, Clock3, Coffee, ListTodo, UsersRound } from "lucide-react";
 import { Card } from "../shared/Card";
 import { Button } from "../shared/Button";
+import { PetAvatar } from "../Pet/PetAvatar";
 import type { TaskItem } from "../../data/mockData";
 
 interface AssistantState {
@@ -204,7 +205,7 @@ export function EmployeeWorkspace({
           </div>
           <div className="status-pet-stage">
             <div className="status-pet-orb">
-              <div className="status-pet-face">૮ ˶ᵔ ᵕ ᵔ˶ ა</div>
+              <PetAvatar mood="greeting" status="efficient" />
             </div>
           </div>
           <div className="status-metric-card">

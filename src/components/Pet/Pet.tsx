@@ -1,6 +1,5 @@
 import { useMemo, useRef } from "react";
 import { motion } from "framer-motion";
-import { Heart, MessageCircleMore } from "lucide-react";
 import { PetAvatar } from "./PetAvatar";
 import { PetBubble } from "./PetBubble";
 import type { PetMood } from "../../data/mockData";
@@ -58,10 +57,6 @@ export function Pet({
           <span>{label}</span>
         </div>
         <PetAvatar mood={mood} status="efficient" />
-        <div className="pet-launcher-icons">
-          <MessageCircleMore size={16} />
-          <Heart size={16} />
-        </div>
       </motion.button>
     </div>
   );

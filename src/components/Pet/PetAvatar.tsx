@@ -1,11 +1,10 @@
 import { motion } from "framer-motion";
-import { Sparkles } from "lucide-react";
 import type { EmployeeStatus, PetMood } from "../../data/mockData";
 
-const moodFace: Record<PetMood, string> = {
-  happy: "૮ • ﻌ - ა",
-  thinking: "૮ ˶- ﻌ -˶ა",
-  greeting: "૮ ˶ᵔ ᵕ ᵔ˶ ა",
+const moodEmoji: Record<PetMood, string> = {
+  happy: "😊",
+  thinking: "🤔",
+  greeting: "🙂",
 };
 
 const statusTone: Record<EmployeeStatus, string> = {
@@ -31,25 +30,14 @@ export function PetAvatar({
   return (
     <motion.div
       className={`pet-avatar ${statusTone[status]} ${small ? "pet-avatar-small" : ""}`}
-      animate={{ y: [0, -8, 0] }}
+      animate={{ y: [0, -6, 0] }}
       transition={{ duration: 2.8, repeat: Number.POSITIVE_INFINITY, ease: "easeInOut" }}
+      aria-hidden="true"
     >
-      <div className="pet-ears">
-        <span />
-        <span />
+      <div className="pet-orb-core">
+        <span className="pet-orb-emoji">{emoji ?? moodEmoji[mood]}</span>
       </div>
-      <div className="pet-face">
-        <span className="pet-face-text">{emoji ?? moodFace[mood]}</span>
-      </div>
-      <div className="pet-blush">
-        <span />
-        <span />
-      </div>
-      {!small && (
-        <div className="pet-crown">
-          <Sparkles size={14} />
-        </div>
-      )}
+      <div className="pet-orb-glow" />
     </motion.div>
   );
 }
