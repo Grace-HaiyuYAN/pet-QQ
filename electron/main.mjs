@@ -15,7 +15,7 @@ let dashboardWindow;
 let petAnimationTimer = null;
 
 const PET_COLLAPSED_SIZE = { width: 360, height: 220 };
-const PET_EXPANDED_SIZE = { width: 360, height: 220 };
+const PET_EXPANDED_SIZE = { width: 360, height: 560 };
 
 const assistantState = {
   reply: "我已经准备好帮你拆任务、推知识库和找协作者了。",

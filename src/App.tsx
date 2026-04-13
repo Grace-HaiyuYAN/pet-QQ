@@ -81,14 +81,16 @@ export default function App({
     );
   };
 
-  const handleAssistantSubmit = async (input: string) => {
+  const handleAssistantSubmit = async (input: string): Promise<AssistantState | null> => {
     try {
       const response = await window.desktopBridge?.chatWithAssistant(input);
-      if (!response) return;
+      if (!response) return null;
 
       setAssistantState(response);
+      return response;
     } catch (error) {
       console.error(error);
+      return null;
     }
   };
 
